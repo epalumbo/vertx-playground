@@ -47,17 +47,19 @@ public class RxWaesHeroVerticle extends AbstractVerticle {
             .createHttpServer()
             .requestHandler(router)
             .rxListen(8888)
+            .doOnSuccess(System.out::println)
+            .doOnError(System.err::println)
             .ignoreElement();
     }
 
     private void create(RoutingContext context) {
         final WaesHero waesHero = context.getBodyAsJson().mapTo(WaesHero.class);
-        waesHero.id = UUID.randomUUID().toString();
+        waesHero.setId(UUID.randomUUID().toString());
         final JsonObject document = JsonObject.mapFrom(waesHero);
         mongoClient
             .rxInsert("heroes", document)
             .ignoreElement()
-            .doOnError(Throwable::printStackTrace)
+            .doOnError(System.err::println)
             .subscribe(() -> context.response().end(document.encodePrettily()), context::fail);
     }
 
@@ -65,7 +67,7 @@ public class RxWaesHeroVerticle extends AbstractVerticle {
         mongoClient
             .rxFind("heroes", new JsonObject())
             .map(Json::encodePrettily)
-            .doOnError(Throwable::printStackTrace)
+            .doOnError(System.err::println)
             .subscribe(json -> context.response().end(json), context::fail);
     }
 

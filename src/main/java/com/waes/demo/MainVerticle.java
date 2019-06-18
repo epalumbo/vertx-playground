@@ -32,7 +32,6 @@ public class MainVerticle extends AbstractVerticle {
                 callback.fail(deployment.cause());
             }
         });
-
     }
 
     private void handleRequest(HttpServerRequest request) {

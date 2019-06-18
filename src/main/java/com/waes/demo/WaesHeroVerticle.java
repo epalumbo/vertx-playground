@@ -83,7 +83,7 @@ public class WaesHeroVerticle extends AbstractVerticle {
 
     private void create(RoutingContext context) {
         final WaesHero waesHero = context.getBodyAsJson().mapTo(WaesHero.class);
-        waesHero.id = UUID.randomUUID().toString();
+        waesHero.setId(UUID.randomUUID().toString());
         final JsonObject document = JsonObject.mapFrom(waesHero);
         mongoClient.insert("heroes", document, async -> {
             if (async.succeeded()) {
