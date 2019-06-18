@@ -1,6 +1,7 @@
 package com.waes.demo;
 
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.codec.BodyCodec;
@@ -34,12 +35,22 @@ class WaesHeroVerticleTest {
             .as(BodyCodec.jsonObject())
             .expect(status(201))
             .expect(contentType("application/json"))
-            .sendJsonObject(payload, test.succeeding(response -> {
-                final JsonObject body = response.body();
-                assertThat(body.getString("_id")).isNotBlank();
-                assertThat(body.getString("name")).isEqualTo("somebody");
-                test.completeNow();
-            }));
+            .sendJsonObject(payload, test.succeeding(postResponse -> test.verify(() -> {
+                final JsonObject hero = postResponse.body();
+                assertThat(hero.getString("_id")).isNotBlank();
+                assertThat(hero.getString("name")).isEqualTo("somebody");
+                webClient
+                    .get(8888, "localhost", "/heroes")
+                    .as(BodyCodec.jsonArray())
+                    .expect(status(200))
+                    .expect(contentType("application/json"))
+                    .send(test.succeeding(getResponse -> test.verify(() -> {
+                        final JsonArray array = getResponse.body();
+                        assertThat(array).hasSize(1);
+                        assertThat(array.getJsonObject(0)).isEqualTo(hero);
+                        test.completeNow();
+                    })));
+            })));
     }
 
 }
